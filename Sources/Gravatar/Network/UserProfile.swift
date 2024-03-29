@@ -37,6 +37,38 @@ public struct UserProfile: Decodable {
     }
 
     let lastProfileEdit: String?
+
+    public init(
+        hash: String,
+        requestHash: String,
+        preferredUsername: String,
+        displayName: String?,
+        name: Name?,
+        pronouns: String?,
+        aboutMe: String?,
+        urls: [LinkURL],
+        photos: [Photo],
+        emails: [Email]?,
+        accounts: [Account]?,
+        profileUrl: String,
+        thumbnailUrl: String,
+        lastProfileEdit: String?
+    ) {
+        self.hash = hash
+        self.requestHash = requestHash
+        self.preferredUsername = preferredUsername
+        self.displayName = displayName
+        self.name = name
+        self.pronouns = pronouns
+        self.aboutMe = aboutMe
+        self.urls = urls
+        self.photos = photos
+        self.emails = emails
+        self.accounts = accounts
+        self.profileUrl = profileUrl
+        self.thumbnailUrl = thumbnailUrl
+        self.lastProfileEdit = lastProfileEdit
+    }
 }
 
 extension UserProfile {
