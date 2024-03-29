@@ -42,27 +42,3 @@ extension ProfileServiceClient {
         }
     }
 }
-
-extension UserProfile {
-    init(profile: Components.Schemas.Profile) {
-        // Force unwrapping because `hash` still needs to be required by the OpenAPI spec
-        let hash = profile.hash!
-
-        self.init(
-            hash: hash,
-            requestHash: hash,
-            preferredUsername: "",
-            displayName: profile.display_name,
-            name: nil,
-            pronouns: profile.pronouns,
-            aboutMe: profile.description,
-            urls: [],
-            photos: [],
-            emails: nil,
-            accounts: nil,
-            profileUrl: profile.profile_url ?? "",
-            thumbnailUrl: profile.avatar_url ?? "",
-            lastProfileEdit: nil
-        )
-    }
-}

@@ -7,7 +7,11 @@ public enum GravatarProfileFetchResult {
 
 /// A service to perform Profile related tasks.
 public struct ProfileService: ProfileFetching {
-    private let client = ProfileServiceClient()
+    private let client: OpenAPIClient
+
+    public init(client: OpenAPIClient = DefaultOpenAPIClient()) {
+        self.client = client
+    }
 
     /// Fetches a Gravatar user's profile information.
     /// - Parameters:
@@ -27,6 +31,6 @@ public struct ProfileService: ProfileFetching {
     }
 
     public func fetch(with profileID: ProfileIdentifier) async throws -> UserProfile {
-        try await client.fetch(with: profileID)
+        try await client.fetchProfile(by: profileID)
     }
 }
