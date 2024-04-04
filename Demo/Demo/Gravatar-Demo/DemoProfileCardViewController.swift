@@ -27,7 +27,7 @@ class DemoProfileCardViewController: UIViewController {
     let activityIndicator = UIActivityIndicatorView(style: .large)
 
     lazy var profileCardView: ProfileCardView = {
-        let view = ProfileCardView(frame: .zero, paletteType: preferredPaletteType)
+        let view = ProfileCardView(ProfileCardView.Configuration(paletteType: preferredPaletteType, model: nil))
         view.translatesAutoresizingMaskIntoConstraints = false
         view.avatarImageView.gravatar.activityIndicatorType = .activity
         return view
@@ -57,7 +57,7 @@ class DemoProfileCardViewController: UIViewController {
     
     var preferredPaletteType: PaletteType = .system {
         didSet {
-            profileCardView.paletteType = preferredPaletteType
+            profileCardView.configuration = ProfileCardView.Configuration(paletteType: preferredPaletteType, model: nil)
         }
     }
     
@@ -109,7 +109,7 @@ class DemoProfileCardViewController: UIViewController {
         var identifier: ProfileIdentifier
         guard let email = emailField.text, email.isEmpty == false else { return }
         identifier = .email(email)
-
+        
         guard activityIndicator.isAnimating == false else { return }
         
         activityIndicator.startAnimating()
@@ -118,7 +118,7 @@ class DemoProfileCardViewController: UIViewController {
             do {
                 let profile = try await service.fetch(with: identifier)
                 activityIndicator.stopAnimating()
-                profileCardView.update(with: profile)
+                profileCardView.configuration = ProfileCardView.Configuration(paletteType: preferredPaletteType, model: profile)
                 profileCardView.loadAvatar(with: profile.avatarIdentifier, options: [.transition(.fade(0.2))])
             } catch {
                 activityIndicator.stopAnimating()

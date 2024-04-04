@@ -4,7 +4,7 @@ import UIKit
 public protocol ProfileCardModel: AboutMeModel, DisplayNameModel, PersonalInfoModel, AvatarIdentifierProvider {}
 extension UserProfile: ProfileCardModel {}
 
-public class ProfileCardView: UIView {
+public class ProfileCardView: UIView, UIContentView {
     private enum Constants {
         static let avatarLength: CGFloat = 132.0
     }
@@ -51,16 +51,33 @@ public class ProfileCardView: UIView {
         return label
     }()
 
-    public var paletteType: PaletteType {
+    public let containerLayoutGuide = UILayoutGuide()
+    public var configuration: UIContentConfiguration {
         didSet {
-            refresh(with: paletteType)
+            configure(configuration: configuration)
         }
     }
 
-    public let containerLayoutGuide = UILayoutGuide()
+    public struct Configuration: UIContentConfiguration {
+        public func updated(for state: UIConfigurationState) -> ProfileCardView.Configuration {
+            self
+        }
+
+        var paletteType: PaletteType
+        var model: ProfileCardModel?
+
+        public init(paletteType: PaletteType, model: ProfileCardModel? = nil) {
+            self.paletteType = paletteType
+            self.model = model
+        }
+
+        public func makeContentView() -> UIView & UIContentView {
+            ProfileCardView(self)
+        }
+    }
 
     override public init(frame: CGRect) {
-        self.paletteType = .system
+        self.configuration = Configuration(paletteType: .system)
         super.init(frame: frame)
         addSubview(rootStackView)
         addLayoutGuide(containerLayoutGuide)
@@ -76,21 +93,15 @@ public class ProfileCardView: UIView {
         ])
     }
 
-    public convenience init(frame: CGRect, paletteType: PaletteType) {
-        self.init(frame: frame)
-        self.paletteType = paletteType
-        refresh(with: paletteType)
+    public convenience init(_ configuration: ProfileCardView.Configuration) {
+        self.init(frame: .zero)
+        self.configuration = configuration
+        refresh(with: configuration.paletteType)
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    public func update(with model: ProfileCardModel) {
-        Configure(aboutMeLabel).asAboutMe().content(model).palette(paletteType)
-        Configure(displayNameLabel).asDisplayName().content(model).palette(paletteType)
-        Configure(personalInfoLabel).asPersonalInfo().content(model).palette(paletteType)
     }
 
     public func loadAvatar(
@@ -112,7 +123,8 @@ public class ProfileCardView: UIView {
         ) { [weak self] result in
             switch result {
             case .success:
-                self?.avatarImageView.layer.borderColor = self?.paletteType.palette.avatarBorder.cgColor
+                guard let configuration = self?.configuration as? Configuration else { return }
+                self?.avatarImageView.layer.borderColor = configuration.paletteType.palette.avatarBorder.cgColor
                 self?.avatarImageView.layer.borderWidth = 1
             default:
                 self?.avatarImageView.layer.borderColor = UIColor.clear.cgColor
@@ -121,11 +133,21 @@ public class ProfileCardView: UIView {
         }
     }
 
-    func refresh(with paletteType: PaletteType) {
+    private func refresh(with paletteType: PaletteType) {
         avatarImageView.layer.borderColor = paletteType.palette.avatarBorder.cgColor
         backgroundColor = paletteType.palette.background.primary
         Configure(aboutMeLabel).asAboutMe().palette(paletteType)
         Configure(displayNameLabel).asDisplayName().palette(paletteType)
         Configure(personalInfoLabel).asPersonalInfo().palette(paletteType)
+    }
+
+    private func configure(configuration: UIContentConfiguration) {
+        guard let configuration = configuration as? Configuration else { return }
+        if let model = configuration.model {
+            Configure(aboutMeLabel).asAboutMe().content(model)
+            Configure(displayNameLabel).asDisplayName().content(model)
+            Configure(personalInfoLabel).asPersonalInfo().content(model)
+        }
+        refresh(with: configuration.paletteType)
     }
 }
